@@ -9,8 +9,8 @@ html {
 }
 
 h1 {
-  margin: 0 auto 15px;
-  width: fit-content;
+  text-align: center;
+  margin-bottom: 15px;
 }
 
 #game-over {
@@ -18,9 +18,29 @@ h1 {
   width: fit-content;
 }
 
+#current-turn {
+  text-align: center;
+}
+
 #main-board {
-  width: 500px;
-  height: 500px;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: fit-content;
+  height: fit-content;
+}
+
+.main-board__container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#main-board__player, #main-board__computer {
+  width: 100%;
+  height: 100%;
   margin: auto;
   display: grid;
   grid-template: repeat(9, 1fr) / repeat(9, 1fr);
@@ -29,8 +49,8 @@ h1 {
 
 .main-board__tile {
   border: 1px solid black;
-  width: 100%;
-  height: 100%;
+  width: 50px;
+  height: 50px;
 }
 
 .hit {
@@ -54,10 +74,21 @@ h1 {
   margin: 15px auto;
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 1024px) {
+  .main-board__tile {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media screen and (max-width: 800px) {
   #main-board {
+    grid-template: repeat(2, 1fr) / auto;
     gap: 3px;
-    width: 250px;
-    height: 250px;
+  }
+
+  .main-board__tile {
+    width: 30px;
+    height: 30px;
   }
 }
