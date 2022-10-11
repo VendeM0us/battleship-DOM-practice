@@ -31,6 +31,43 @@ const foundWinner = () => {
   return false;
 };
 
+const checkHitTile = (row, col, num) => {
+  const tile = document.querySelector(`div[data-coordinate-computer="${row}-${col}"]`);
+  if (tile.innerHTML === "" || tile.classList.contains("miss"))
+    return false;
+
+  let returnCoord;
+
+  const neighbors = [[row + 1, col], [row - 1, col], [row, col + 1], [row, col - 1]]
+    .filter(coord => {
+      const [row, col] = coord;
+      return row >= 0 && row < 9 && col >= 0 && col < 9;
+    });
+
+  for (let i = 0; i < neighbors.length; i++) {
+    const coord = neighbors[i];
+    const [nrow, ncol] = coord;
+    const neighborTile = document.querySelector(`div[data-coordinate-computer="${nrow}-${ncol}"]`);
+
+    if (neighborTile.classList.contains("hit") && neighborTile.innerHTML === num) {
+      const rowOffset = nrow - row;
+      const colOffset = ncol - col;
+
+      const setCoord = `${nrow + rowOffset}-${ncol + colOffset}`;
+      const checkTile = document.querySelector(`div[data-coordinate-computer="${setCoord}"]`);
+      if (!checkTile.classList.contains("miss") 
+        && !checkTile.classList.contains("hit")
+        && neighborTile.innerHTML === num)
+        return setCoord;
+    } 
+
+    if (!neighborTile.classList.contains("miss") && !neighborTile.classList.contains("hit"))
+      returnCoord = `${nrow}-${ncol}`;
+  }
+
+  return returnCoord;
+};
+
 const computerHit = async () => {
   if (allowHit) {
     document.getElementById("current-turn").innerText = "Computer's Turn";
@@ -39,17 +76,40 @@ const computerHit = async () => {
       const rowLen = computerBoard.grid.length;
       const colLen = computerBoard.grid[0].length;
   
+      let row, col, coord;
+      let initialCoordSetted = false;
+
+      const tiles = document.getElementById("main-board__computer").children;
+      for (let i = 0; i < tiles.length; i++) {
+        const tile = tiles[i];
+        [row, col] = tile.getAttribute("data-coordinate-computer")
+          .split("-")
+          .map(i => parseInt(i));
+        const num = tile.innerHTML;
+
+        const checkTile = checkHitTile(row, col, num);
+        if (checkTile) {
+          coord = checkTile;
+          [row, col] = coord.split("-").map(i => parseInt(i));
+          initialCoordSetted = true;
+          break;
+        }
+      }
+
       let validCoord = false;
       while (!validCoord) {
         // random coordinate
-        const r = randomInt(0, rowLen);
-        const c = randomInt(0, colLen);
-        const coord = `${r}-${c}`;
+        if (!initialCoordSetted) {
+          row = randomInt(0, rowLen);
+          col = randomInt(0, colLen);
+          coord = `${row}-${col}`;
+        }
   
-        const tile = document.querySelector(`div[data-coordinate-computer="${coord}"]`, coord);
+        const tile = document.querySelector(`div[data-coordinate-computer="${coord}"]`);
         if (!tile.classList.contains("hit") && !tile.classList.contains("miss")) {
           validCoord = true;
-          const hit = computerBoard.makeHit(r, c);
+
+          const hit = computerBoard.makeHit(row, col);
   
           if (hit) {
             hitSound.currentTime = 0;
@@ -72,30 +132,6 @@ const computerHit = async () => {
   }
 }
 
-const boardLogic = async event => {
-  if (allowHit && currentTurn === 'p') {
-    const tile = event.target;
-    const [row, col] = tile.dataset.coordinatePlayer.split("-").map(i => parseInt(i));
-
-    const hit = playerBoard.makeHit(row, col);
-    if (hit) {
-      hitSound.currentTime = 0;
-      hitSound.play();
-      event.target.classList.add("hit");
-      event.target.innerHTML = hit;
-    } else {
-      missSound.currentTime = 0;
-      missSound.play();
-      event.target.classList.add("miss");
-    }
-
-    if (!foundWinner()) {
-      currentTurn = 'c';
-      await computerHit();
-    }
-  }
-};
-
 // Your code here
 window.addEventListener("DOMContentLoaded", event => {
   // make a list
@@ -114,7 +150,29 @@ window.addEventListener("DOMContentLoaded", event => {
     }
   }
 
-  document.getElementById("main-board").addEventListener("click", boardLogic);
+  document.getElementById("main-board").addEventListener("click", async event => {
+    if (allowHit && currentTurn === 'p') {
+      const tile = event.target;
+      const [row, col] = tile.dataset.coordinatePlayer.split("-").map(i => parseInt(i));
+  
+      const hit = playerBoard.makeHit(row, col);
+      if (hit) {
+        hitSound.currentTime = 0;
+        hitSound.play();
+        event.target.classList.add("hit");
+        event.target.innerHTML = hit;
+      } else {
+        missSound.currentTime = 0;
+        missSound.play();
+        event.target.classList.add("miss");
+      }
+  
+      if (!foundWinner()) {
+        currentTurn = 'c';
+        await computerHit();
+      }
+    }
+  });
 
   document.getElementById("reset").addEventListener("click", event => {
     const tiles = document.getElementsByClassName("main-board__tile");
@@ -125,5 +183,8 @@ window.addEventListener("DOMContentLoaded", event => {
       tiles[i].classList.remove("hit", "miss");
       tiles[i].innerHTML = "";
     }
+
+    document.getElementById("current-turn").innerText = "Player's Turn";
+    allowHit = true;
   });
 });
