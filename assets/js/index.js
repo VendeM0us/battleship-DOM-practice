@@ -3,14 +3,14 @@ import { hitSound, missSound } from "./helpers/audios.js";
 import { randomInt } from "./helpers/random-int.js";
 import { checkGreenTile } from "./computerAI/check-green-tile.js";
 
-let playerBoard = new Board(); // creates a new game board
-let computerBoard = new Board();
+let humanPlayer = new Board(); // creates a new game board
+let computerPlayer = new Board();
 let currentTurn = 'p'; // 'p' - player, 'c' - computer
 let allowHit = true;
 
 const foundWinner = () => {
-  if (playerBoard.isGameOver() || computerBoard.isGameOver()) {
-    const winner = playerBoard.isGameOver()
+  if (humanPlayer.isGameOver() || computerPlayer.isGameOver()) {
+    const winner = humanPlayer.isGameOver()
       ? 'Player'
       : 'Computer';
 
@@ -27,8 +27,8 @@ const computerHit = async () => {
     document.getElementById("current-turn").innerText = "Computer's Turn";
 
     return setTimeout(() => {
-      const rowLen = computerBoard.grid.length;
-      const colLen = computerBoard.grid[0].length;
+      const rowLen = computerPlayer.grid.length;
+      const colLen = computerPlayer.grid[0].length;
   
       let row, col, coord;
       let initialCoordSetted = false;
@@ -63,7 +63,7 @@ const computerHit = async () => {
         if (!tile.classList.contains("hit") && !tile.classList.contains("miss")) {
           validCoord = true;
 
-          const hit = computerBoard.makeHit(row, col);
+          const hit = computerPlayer.makeHit(row, col);
   
           if (hit) {
             hitSound.currentTime = 0;
@@ -88,13 +88,13 @@ const computerHit = async () => {
 
 // Examine the grid of the game board in the browser console.
 // Create the UI of the game using HTML elements based on this grid.
-console.log(playerBoard.grid);
+console.log(humanPlayer.grid);
 
 // Your code here
 window.addEventListener("DOMContentLoaded", event => {
   // make a list
-  for (let i = 0; i < playerBoard.grid.length; i++) {
-    const row = playerBoard.grid[i];
+  for (let i = 0; i < humanPlayer.grid.length; i++) {
+    const row = humanPlayer.grid[i];
 
     for (let j = 0; j < row.length; j++) {
       const playerTile = document.createElement("div");
@@ -102,7 +102,7 @@ window.addEventListener("DOMContentLoaded", event => {
       playerTile.setAttribute("class", "main-board__tile");
       compTile.setAttribute("class", "main-board__tile");
       playerTile.setAttribute("data-coordinate-player", `${i}-${j}`);
-      compTile.setAttribute("data-coordinate-computer", `${i}-${j}`)
+      compTile.setAttribute("data-coordinate-computer", `${i}-${j}`);
       document.getElementById("main-board__player").appendChild(playerTile);
       document.getElementById("main-board__computer").appendChild(compTile);
     }
@@ -116,7 +116,7 @@ window.addEventListener("DOMContentLoaded", event => {
       const tile = event.target;
       const [row, col] = tile.dataset.coordinatePlayer.split("-").map(i => parseInt(i));
   
-      const hit = playerBoard.makeHit(row, col);
+      const hit = humanPlayer.makeHit(row, col);
       if (hit) {
         hitSound.currentTime = 0;
         hitSound.play();
@@ -137,10 +137,10 @@ window.addEventListener("DOMContentLoaded", event => {
 
   document.getElementById("reset").addEventListener("click", event => {
     const tiles = document.getElementsByClassName("main-board__tile");
-    playerBoard = new Board();
-    computerBoard = new Board();
-    playerBoard.numRemaining = 17;
-    computerBoard.numRemaining = 17;
+    humanPlayer = new Board();
+    computerPlayer = new Board();
+    humanPlayer.numRemaining = 17;
+    computerPlayer.numRemaining = 17;
 
     for (let i = 0; i < tiles.length; i++) {
       tiles[i].classList.remove("hit", "miss");

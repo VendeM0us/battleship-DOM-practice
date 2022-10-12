@@ -8,6 +8,7 @@ export const checkGreenTile = (row, col) => {
 
   if (completedTiles.has(greenTile.dataset.coordinateComputer)) return false;
   let tileChains = [greenTile.dataset.coordinateComputer];
+  let greenTileCoords = [];
 
   const shipNum = greenTile.innerHTML;
 
@@ -16,6 +17,12 @@ export const checkGreenTile = (row, col) => {
       const [row, col] = coord;
       if (row >= 0 && row < 9 && col >= 0 && col < 9) {
         const neighborTile = document.querySelector(`div[data-coordinate-computer="${row}-${col}"]`);
+
+        if (neighborTile.innerHTML === shipNum) {
+          greenTileCoords.push(coord);
+          tileChains.push(neighborTile.dataset.coordinateComputer);
+        }
+
         return (neighborTile.innerHTML === "" && !neighborTile.classList.contains("miss"))
           || neighborTile.innerHTML === shipNum;
       }
@@ -23,19 +30,10 @@ export const checkGreenTile = (row, col) => {
       return false;
     });
 
-  const adjacentCoords = neighbors.filter(coord => {
-    const [row, col] = coord;
-    const checkTile = document.querySelector(`div[data-coordinate-computer="${row}-${col}"]`);
-    if (checkTile.innerHTML === shipNum) {
-      tileChains.push(checkTile.dataset.coordinateComputer);
-      return true;
-    }
-  });
-
   let returnCoords = [];
 
-  let chainCount = 1 + adjacentCoords.length;
-  adjacentCoords.forEach(coord => {
+  let chainCount = 1 + greenTileCoords.length;
+  greenTileCoords.forEach(coord => {
     const [nrow, ncol] = coord;
     const rowOffset = nrow - row, colOffset = ncol - col;
     const checkNextCoord = [nrow + rowOffset, ncol + colOffset];
@@ -70,8 +68,8 @@ export const checkGreenTile = (row, col) => {
   });
 
   if (chainCount !== parseInt(shipNum)) {
-    if (adjacentCoords.length === 1) {
-      const [nrow, ncol] = adjacentCoords[0];
+    if (greenTileCoords.length === 1) {
+      const [nrow, ncol] = greenTileCoords[0];
       const rowOffset = row - nrow, colOffset = col - ncol;
       const checkCoord = [row + rowOffset, col + colOffset];
 
@@ -81,13 +79,13 @@ export const checkGreenTile = (row, col) => {
         if (checkTile.innerHTML === "" && !checkTile.classList.contains("miss"))
           returnCoords.push(coordStr);
       }
-    } else if (adjacentCoords.length === 0) {
+    } else if (greenTileCoords.length === 0) {
       const randomIdx = randomInt(0, neighbors.length);
       const [row, col] = neighbors[randomIdx];
       return `${row}-${col}`;
     }
 
-    const idx = randomInt(0, adjacentCoords.length);
+    const idx = randomInt(0, greenTileCoords.length);
     return returnCoords[idx];
   } else {
     tileChains.forEach(coord => completedTiles.add(coord));
