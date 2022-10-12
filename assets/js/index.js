@@ -1,21 +1,12 @@
 import Board from "./board.js";
+import { hitSound, missSound } from "./helpers/audios.js";
+import { randomInt } from "./helpers/random-int.js";
+import { checkGreenTile } from "./computerAI/check-green-tile.js";
 
 let playerBoard = new Board(); // creates a new game board
 let computerBoard = new Board();
 let currentTurn = 'p'; // 'p' - player, 'c' - computer
 let allowHit = true;
-const hitSound = new Audio("/assets/audios/hit-sound.wav");
-const missSound = new Audio("/assets/audios/miss-sound.wav");
-
-// Examine the grid of the game board in the browser console.
-// Create the UI of the game using HTML elements based on this grid.
-console.log(playerBoard.grid);
-
-const randomInt = (min, max) => {
-  min = Math.floor(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min);
-}
 
 const foundWinner = () => {
   if (playerBoard.isGameOver() || computerBoard.isGameOver()) {
@@ -29,43 +20,6 @@ const foundWinner = () => {
   }
 
   return false;
-};
-
-const checkHitTile = (row, col, num) => {
-  const tile = document.querySelector(`div[data-coordinate-computer="${row}-${col}"]`);
-  if (tile.innerHTML === "" || tile.classList.contains("miss"))
-    return false;
-
-  let returnCoord;
-
-  const neighbors = [[row + 1, col], [row - 1, col], [row, col + 1], [row, col - 1]]
-    .filter(coord => {
-      const [row, col] = coord;
-      return row >= 0 && row < 9 && col >= 0 && col < 9;
-    });
-
-  for (let i = 0; i < neighbors.length; i++) {
-    const coord = neighbors[i];
-    const [nrow, ncol] = coord;
-    const neighborTile = document.querySelector(`div[data-coordinate-computer="${nrow}-${ncol}"]`);
-
-    if (neighborTile.classList.contains("hit") && neighborTile.innerHTML === num) {
-      const rowOffset = nrow - row;
-      const colOffset = ncol - col;
-
-      const setCoord = `${nrow + rowOffset}-${ncol + colOffset}`;
-      const checkTile = document.querySelector(`div[data-coordinate-computer="${setCoord}"]`);
-      if (!checkTile.classList.contains("miss") 
-        && !checkTile.classList.contains("hit")
-        && neighborTile.innerHTML === num)
-        return setCoord;
-    } 
-
-    if (!neighborTile.classList.contains("miss") && !neighborTile.classList.contains("hit"))
-      returnCoord = `${nrow}-${ncol}`;
-  }
-
-  return returnCoord;
 };
 
 const computerHit = async () => {
@@ -87,7 +41,7 @@ const computerHit = async () => {
           .map(i => parseInt(i));
         const num = tile.innerHTML;
 
-        const checkTile = checkHitTile(row, col, num);
+        const checkTile = checkGreenTile(row, col);
         if (checkTile) {
           coord = checkTile;
           [row, col] = coord.split("-").map(i => parseInt(i));
@@ -130,7 +84,11 @@ const computerHit = async () => {
       }
     }, 2000);
   }
-}
+};
+
+// Examine the grid of the game board in the browser console.
+// Create the UI of the game using HTML elements based on this grid.
+console.log(playerBoard.grid);
 
 // Your code here
 window.addEventListener("DOMContentLoaded", event => {
@@ -151,7 +109,10 @@ window.addEventListener("DOMContentLoaded", event => {
   }
 
   document.getElementById("main-board").addEventListener("click", async event => {
-    if (allowHit && currentTurn === 'p') {
+    if (allowHit 
+      && currentTurn === 'p'
+      && !event.target.classList.contains("miss")
+      && !event.target.classList.contains("hit")) {
       const tile = event.target;
       const [row, col] = tile.dataset.coordinatePlayer.split("-").map(i => parseInt(i));
   
@@ -176,6 +137,8 @@ window.addEventListener("DOMContentLoaded", event => {
 
   document.getElementById("reset").addEventListener("click", event => {
     const tiles = document.getElementsByClassName("main-board__tile");
+    playerBoard = new Board();
+    computerBoard = new Board();
     playerBoard.numRemaining = 17;
     computerBoard.numRemaining = 17;
 
@@ -185,6 +148,7 @@ window.addEventListener("DOMContentLoaded", event => {
     }
 
     document.getElementById("current-turn").innerText = "Player's Turn";
+    currentTurn = 'p';
     allowHit = true;
   });
 });
