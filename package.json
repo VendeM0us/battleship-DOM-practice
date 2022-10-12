@@ -1,0 +1,19 @@
+{
+  "name": "practice-for-week-09-battleship-dom",
+  "version": "1.0.0",
+  "description": "Classic Battleship game using raw javascript, html, and css",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VendeM0us/battleship-DOM-practice.git"
+  },
+  "author": "Mayolito C. Waje",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VendeM0us/battleship-DOM-practice/issues"
+  },
+  "homepage": "https://github.com/VendeM0us/battleship-DOM-practice#readme"
+}
